@@ -11,25 +11,83 @@ function draw() {
   // drawing in local space, after translation and rotation it is world space
   translate(100, 100);
   let hex1 = new Hex(200, 200, 6);
-  //let hex2 = new Hex(120, 70, 6);
   hex1.draw();
-  //hex2.draw();
   push();
-
   stroke(255, 0, 0);
   strokeWeight(4);
   point(hex1.getPoint(0).x, hex1.getPoint(0).y);
   point(hex1.getPoint(2).x, hex1.getPoint(2).y);
   point(hex1.getPoint(4).x, hex1.getPoint(4).y);
   pop();
-  frostLine(0);
-}
-function boarder(){
-  // create a boarder for the frost to stay on
-    fill(255)
-    noStroke();
-    rect(width-350, height-350, 300, 300);
+  for(let j = 0; j < 6; j++){
+
+    let x = hex1.getPoint(j).x;
+    let y = hex1.getPoint(j).y;
+    frostLine(0, x, y);
+    rotate((60 * PI)/ 180)
+
   }
+
+  
+}
+//Making hexagons a class so that I can access the points
+class Hex {
+  constructor(x, y, radius) {
+  this.points = new Array(6);
+  this.x = x;
+  this.y = y;
+  //Create 6 points
+  for (let i = 0; i < 6; ++i) {
+  this.points[i] = {
+  x: radius * cos((i * 60.0 * PI) / 180.0),
+  y: radius * sin((i * 60.0 * PI) / 180.0),
+  };
+  }
+  }
+   draw() {
+  for (let i = 0; i < 6; ++i) {
+  line(
+  this.points[i].x,
+  this.points[i].y,
+  this.points[(i + 1) % 6].x,
+  this.points[(i + 1) % 6].y
+  );
+  }
+  }
+   getPoint(index) {
+   return {
+    x : this.points[index].x,
+    y : this.points[index].y
+    };
+    }
+  }
+  
+  function frostLine(level, x, y){
+    /*while(x < width && x > 0){
+      while(y > 0 && y < height){
+
+      }
+    }*/
+    if (level > maxLevel){
+      return
+    }
+    strokeWeight(1);
+    line(x, y, 150, 0);
+    for(let i = 0; i < branches; i++){
+      push();
+      translate(200 * 1 / (branches + 1), y);
+      scale(0.5, 0.5);
+      push();
+      rotate(agl);
+      frostLine(level + 1);
+      pop();
+      push();
+      frostLine(level + 1);
+      pop();
+      pop();
+    }
+  }
+
 function angle(){
   let noiseValue = noise(20, 40);
   let angle = map(noiseValue, 0, 1, 0, 60);
@@ -85,60 +143,3 @@ function commands(int, x, y){
     line(x , y, x - 2, y - 2);
   }
 }
-//Making hexagons a class so that I can access the points
-class Hex {
-  constructor(x, y, radius) {
-  this.points = new Array(6);
-  this.x = x;
-  this.y = y;
-  //Create 6 points
-  for (let i = 0; i < 6; ++i) {
-  this.points[i] = {
-  x: radius * cos((i * 60.0 * PI) / 180.0),
-  y: radius * sin((i * 60.0 * PI) / 180.0),
-  };
-  }
-  }
-   draw() {
-  for (let i = 0; i < 6; ++i) {
-  line(
-  this.points[i].x,
-  this.points[i].y,
-  this.points[(i + 1) % 6].x,
-  this.points[(i + 1) % 6].y
-  );
-  }
-  }
-   getPoint(index) {
-   return {
-    x : this.points[index].x,
-    y : this.points[index].y
-    };
-    }
-  }
-  function frostLine(level, x, y){
-
-    while(x < width && x > 0){
-      while(y > 0 && y < height){
-
-      }
-    }
-    if (level > maxLevel){
-      return
-    }
-    strokeWeight(2);
-    line(0,0, 200, 0);
-    for(let i = 0; i < branches; i++){
-      push();
-      translate(200 * 1 / (branches +1), 0);
-      scale(0.5, 0.5);
-      push();
-      rotate(agl);
-      frostLine(level + 1);
-      pop();
-      push();
-      frostLine(level+1);
-      pop();
-      pop();
-    }
-  }
