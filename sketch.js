@@ -12,11 +12,11 @@ let SnowFlakes = [];
 function setup() {
   createCanvas(400, 400);
   frameRate(1);
-  while (SnowFlakes.length < DesiredNumberOfSnowflakes){
+  while (SnowFlakes.length  < DesiredNumberOfSnowflakes){
     let newFlake = newSnowflake();
       let nearBySnowflakes = SnowFlakes.filter(function(flake){
-        if (distance(flake.x, flake.y, newFlake.x, newFlake.y) < 200){
-          return(flake.x, flake.y);
+        if (distance(flake.x, flake.y, newFlake.x, newFlake.y) > 200){
+          return(nearBySnowflakes.push({ x: flake.x, y : flake.y}));
         }
     });
   }
@@ -98,7 +98,7 @@ function frostLine(level, seed) {
   }
 }
 function distance(x1, y1, x2, y2){
-  return(sqrt[pow((x2 - x1), 2) + pow((y2 - y1), 2)]);
+  return(sqrt(pow((x2 - x1), 2) + pow((y2 - y1), 2)));
 }
 //Making hexagons a class so that I can access the points
 class Hex {
