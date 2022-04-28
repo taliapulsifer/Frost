@@ -1,27 +1,31 @@
 // Frost and Perlin Noise
 // global variables that are either final or need to be set once but available everywhere
-let DesiredNumberOfSnowflakes = 2;
-let MaxLevel = 3;
+let DesiredNumberOfSnowflakes = 5;
+let MaxLevel = 4;
 let Branches = 2;
-let length = 100;
+let Length = 60;
+let LengthScale = 500;
 let MinSize = 0.1;
-let MaxSize = 25;
-let MaxSizeToGrow = 100;
+let MaxSize = 30;
+let MaxSizeToGrow = 150;
 let SnowFlakes = [];
+let MaxGrowth = 5;
+let MinGrowth = 0.5;
 
 function setup() {
-  createCanvas(400, 400);
+  createCanvas(800, 800);
   frameRate(1);
-  while (SnowFlakes.length  < DesiredNumberOfSnowflakes){
-    let newFlake = newSnowflake();
-      let nearBySnowflakes = SnowFlakes.filter(function(flake){
-        if (distance(flake.x, flake.y, newFlake.x, newFlake.y) > 200){
-          return(nearBySnowflakes.push({ x: flake.x, y : flake.y}));
-        }
-    });
-  }
-  if (nearBySnowflakes.length == 0){
-    SnowFlakes.push(newFlake);
+  while (SnowFlakes.length < DesiredNumberOfSnowflakes) {
+      let newFlake = newSnowflake();
+      print(newFlake.size);
+      print(newFlake.speed);
+      let nearBySnowflakes = SnowFlakes.filter(function (flake) {
+          let dist = distance(flake.x, flake.y, newFlake.x, newFlake.y);
+          return dist < 250;
+      });
+      if (nearBySnowflakes.length == 0) {
+          SnowFlakes.push(newFlake);
+      }
   }
 }
 function newSnowflake(){
@@ -29,8 +33,13 @@ function newSnowflake(){
     x: random(100, width - 100),
     y : random(100, height - 100),
     z : random(0, 400),
-    size : map((noise(random(0, 100))), 0, 1, MinSize, MaxSize),
+    size : lerp(MinSize, MaxSize, noise(random(0, 1000))),
     speed : random(0.1, 3)
+  }
+}
+function shouldStopSnowflake(flake){
+  if(flake.size > MaxSizeToGrow){
+    return true;
   }
 }
 function draw() {
@@ -40,16 +49,22 @@ function draw() {
   length += 10;
   SnowFlakes.forEach(seed => {
     // calling drawFrost, which uses the Hex class and calls frostLine
-    drawFrost(seed.x, seed.y, seed.z);
+    drawFrost(seed.x, seed.y, seed.z, seed.size);
+    seed.size += seed.speed;
+    if(shouldStopSnowflake(seed)){
+      seed.speed = 0;
+    }
   });
 }
-function drawFrost(x, y, seed) {
+function noiseLength(x){
+  return noise(x) * LengthScale;
+}
+function drawFrost(x, y, seed, length) {
   let hex = new Hex(200, 200, 2);
   push();
   strokeWeight(2);
   stroke(255);
   translate(x, y);
-  hex.draw();
   for (let j = 0; j < 6; j++) {
 
     let x = hex.getPoint(j).x;
@@ -57,7 +72,7 @@ function drawFrost(x, y, seed) {
     push();
     translate(x, y);
     rotate(j * (60 * PI) / 180)
-    frostLine(0, seed);
+    frostLine(0, seed, length);
     pop();
   }
   pop();
@@ -66,19 +81,14 @@ function drawFrost(x, y, seed) {
 function branchAngle(x) {
   return noise(x) * width;
 }
-// Using Perlin Noise to determine the 'growing speed' of each piece of ice
-function growthSpeed(){
-  let noiseGrowth = noise(x, y);
-  let growthValue = map(noiseGrowth, 0, 1, 2, 7);
-  return(growthValue);
-}
-function frostLine(level, seed) {
+
+function frostLine(level, angleSeed, length) {
 
   if (level > MaxLevel) {
     return
   }
 
-  let agl = branchAngle(seed);
+  let nextAngle = branchAngle(angleSeed);
   for (let i = 0; i <= Branches; i++) {
     line(0, 0, length, 0);
 
@@ -86,17 +96,18 @@ function frostLine(level, seed) {
     translate(length * i / (Branches + 1), 0);
     scale(0.5, 0.5);
     push();
-    rotate(agl);
-    frostLine(level + 1, agl);
+    rotate(nextAngle);
+    frostLine(level + 1, nextAngle, length);
     pop();
     push();
-    rotate(-agl);
-    frostLine(level + 1, -agl);
+    rotate(-nextAngle);
+    frostLine(level + 1, -nextAngle, length);
     pop();
     pop();
 
   }
 }
+// Distance formula to determine if they are too close together
 function distance(x1, y1, x2, y2){
   return(sqrt(pow((x2 - x1), 2) + pow((y2 - y1), 2)));
 }
